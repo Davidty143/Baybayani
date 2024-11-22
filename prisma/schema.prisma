@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @unique @db.Uuid
+  email      String?   @unique
+  contact    String?
+  name       String?
+  role       String?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  orders     Orders[] // One-to-many relation to Orders
+  cart       Cart? // One-to-one relation with Cart (added here)
+}
+
+model Cart {
+  id         String    @id @default(uuid()) @db.Uuid // UUID for cart ID
+  userId     String    @unique @db.Uuid // Add @unique to make this a one-to-one relation
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6) // Automatically update when cart is modified
+  user       User      @relation(fields: [userId], references: [id])
+  // CartItems relation (Products added to the cart)
+  cartItems CartItem[] // One-to-many relation to CartItem
+}
+
+model CartItem {
+  id         Int       @id @default(autoincrement())
+  cartId     String    @db.Uuid // Foreign key pointing to Cart's `id`
+  productId  Int
+  quantity   Int       @default(1) // Quantity of the product in the cart
+
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+
+  // Relations to Cart and Products models  
+  cart    Cart     @relation(fields: [cartId], references: [id])
+  product Products @relation(fields: [productId], references: [id])
+}
+
+model Orders {
+  id         String      @id @default(uuid()) @db.Uuid // Use UUID for the order's primary key
+  userId     String      @db.Uuid // Foreign key pointing to User's `id`
+  created_at DateTime?   @default(now()) @db.Timestamptz(6)
+  modified_at DateTime?   @default(now()) @db.Timestamptz(6)
+  orderItem  OrderItem[]
+  // Relation to User model
+  user User @relation(fields: [userId], references: [id])
+   totalPrice Int?
+}
+
+model OrderItem {
+  id         Int       @id @default(autoincrement())
+  orderId    String    @db.Uuid // Foreign key pointing to Orders' `id`
+  productId  Int
+  quantity   Int       @default(1)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  // Relations to Orders and Products models
+  order   Orders   @relation(fields: [orderId], references: [id])
+  product Products @relation(fields: [productId], references: [id])
+}
+
+model Products {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String
+  url         String
+  price       Int
+  created_at  DateTime?   @default(now()) @db.Timestamptz(6)
+  orderItem   OrderItem[] // One-to-many relation to OrderItem
+  farmer     Farmer[]   @relation("FarmerProducts")
+  CartItem    CartItem[]
+  hidden      Boolean  @default(false)
+}
+
+model Farmer {
+  id          Int     @id @default(autoincrement())
+  name        String
+  contact     String?
+  products    Products[]  @relation("FarmerProducts")
+  created_at  DateTime?  @default(now()) @db.Timestamptz(6)
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
