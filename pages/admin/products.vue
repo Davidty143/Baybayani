@@ -200,6 +200,7 @@ import axios from 'axios';
 import { ref, computed, onMounted } from "vue";
 import AdminLayout from "~/layouts/AdminLayout.vue";
 import SideBarLayout from "~/layouts/SideBarLayout.vue";
+import { useRuntimeConfig } from '#imports';
 
 export default {
   name: "ProductManagement",
@@ -208,6 +209,9 @@ export default {
     SideBarLayout,
   },
   setup() {
+    const config = useRuntimeConfig();
+    const apiUrl = config.public.apiUrl;
+
     const isModalVisible = ref(false);
     const editMode = ref(false);
     const products = ref([]);
@@ -246,7 +250,7 @@ export default {
 
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/prisma/get-all-products");
+        const response = await axios.get(`${apiUrl}/api/prisma/get-all-products`);
         if (response.status === 200) {
           products.value = response.data;
         } else {
@@ -260,7 +264,7 @@ export default {
 
     const addProduct = async () => {
       try {
-        const response = await axios.post("http://localhost:3000/api/prisma/add-product", {
+        const response = await axios.post(`${apiUrl}/api/prisma/add-product`, {
           title: product.value.title,
           description: product.value.description,
           url: product.value.url,
@@ -284,7 +288,7 @@ export default {
 
     const updateProduct = async () => {
       try {
-        const response = await axios.put(`http://localhost:3000/api/prisma/update-product/${product.value.id}`, {
+        const response = await axios.put(`${apiUrl}/api/prisma/update-product/${product.value.id}`, {
           title: product.value.title,
           description: product.value.description,
           url: product.value.url,
@@ -311,7 +315,7 @@ export default {
     const toggleProductVisibility = async (product) => {
       try {
         const updatedProduct = { ...product, hidden: !product.hidden };
-        const response = await axios.put(`http://localhost:3000/api/prisma/update-product/${product.id}`, {
+        const response = await axios.put(`${apiUrl}/api/prisma/update-product/${product.id}`, {
           hidden: updatedProduct.hidden,
         });
 
@@ -333,7 +337,7 @@ export default {
 
     const deleteProduct = async (productId) => {
       try {
-        const response = await axios.delete(`http://localhost:3000/api/prisma/delete-product/${productId}`);
+        const response = await axios.delete(`${apiUrl}/api/prisma/delete-product/${productId}`);
 
         if (response.status === 200) {
           showNotification("Product successfully deleted!", 'success');
