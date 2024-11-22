@@ -210,7 +210,7 @@ export default {
   },
   setup() {
     const config = useRuntimeConfig();
-    const apiUrl = config.public.apiUrl;
+    const apiUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : config.public.apiUrl;
 
     const isModalVisible = ref(false);
     const editMode = ref(false);
