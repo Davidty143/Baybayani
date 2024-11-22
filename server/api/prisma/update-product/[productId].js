@@ -5,35 +5,49 @@ const prisma = new PrismaClient();
 export default defineEventHandler(async (event) => {
   try {
     const { productId } = event.context.params;
+    const requestBody = await readBody(event);
 
-    // First, delete all cart items related to this product
-    await prisma.cartItem.deleteMany({
-      where: {
-        productId: parseInt(productId, 10),
-      },
-    });
+    // Check if productId is provided for update operations
+    if (productId) {
+      // Update the product details if productId is specified
+      const updatedProduct = await prisma.products.update({
+        where: {
+          id: parseInt(productId, 10),
+        },
+        data: {
+          title: requestBody.title || undefined,
+          description: requestBody.description || undefined,
+          price: requestBody.price !== undefined ? parseFloat(requestBody.price) : undefined,
+          url: requestBody.url || undefined,
+          hidden: requestBody.hidden !== undefined ? requestBody.hidden : undefined,
+        },
+      });
 
-    // Then, delete the product itself
-    await prisma.products.delete({
-      where: {
-        id: parseInt(productId, 10),
-      },
-    });
-
-    return {
-      statusCode: 200,
-      body: {
-        message: "Product deleted successfully",
-      },
-    };
+      return {
+        statusCode: 200,
+        body: {
+          message: "Product updated successfully",
+          product: updatedProduct,
+        },
+      };
+    } else {
+      // Fetching all products when no productId is specified
+      const products = await prisma.products.findMany();
+      return {
+        statusCode: 200,
+        body: products,
+      };
+    }
   } catch (error) {
-    console.error("Error deleting product:", error);
+    console.error("Error:", error);
     return {
       statusCode: 500,
       body: {
-        message: "Error deleting product",
+        message: "An error occurred",
         error: error.message,
       },
     };
+  } finally {
+    await prisma.$disconnect(); // Ensure the Prisma client disconnects after the query
   }
 });

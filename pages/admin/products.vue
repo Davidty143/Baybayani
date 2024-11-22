@@ -7,7 +7,7 @@
     <AdminLayout class="admin-layout">
       <div class="main-content flex-1 overflow-y-auto p-6">
         <!-- Title -->
-        <h1 class="text-3xl font-semibold mb-8">Product Management</h1>
+        <h1 class="text-3xl font-semibold mb-8 text-center">Product Management</h1>
 
         <!-- Product Stats Boxes -->
         <div class="grid grid-cols-4 gap-6 mb-8">
@@ -88,13 +88,24 @@
                 </td>
                 <td class="py-4 px-4 border-b">₱{{ parseFloat(product.price).toFixed(2) }}</td>
                 <td class="py-4 px-4 border-b text-center flex items-center justify-center space-x-4">
-                  <button @click="toggleProductVisibility(product)" class="text-gray-600 hover:text-blue-600">
+                  <button 
+                    @click="toggleProductVisibility(product)" 
+                    :disabled="isProductInOrderItem(product.id)" 
+                    class="text-gray-600 hover:text-blue-600 disabled:opacity-50"
+                  >
                     <Icon :name="product.hidden ? 'ph:eye-slash-bold' : 'ph:eye-bold'" size="20" />
                   </button>
-                  <button @click="openEditModal(product)" class="text-gray-600 hover:text-gray-800">
+                  <button 
+                    @click="openEditModal(product)" 
+                    class="text-gray-600 hover:text-gray-800"
+                  >
                     <Icon name="ph:pencil-simple-bold" size="20" />
                   </button>
-                  <button @click="deleteProduct(product.id)" class="text-gray-600 hover:text-red-800">
+                  <button 
+                    @click="deleteProduct(product.id)" 
+                    :disabled="isProductInOrderItem(product.id)" 
+                    class="text-gray-600 hover:text-red-800 disabled:opacity-50"
+                  >
                     <Icon name="ph:trash-bold" size="20" />
                   </button>
                 </td>
@@ -189,9 +200,11 @@
     </div>
 
     <!-- Success or Error Notification -->
-    <div v-if="notification.show" :class="['fixed bottom-4 right-4 p-4 rounded-md shadow-lg', notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white']">
-      {{ notification.message }}
-    </div>
+    <transition name="fade">
+      <div v-if="notification.show" :class="['fixed top-4 left-1/2 transform -translate-x-1/2 p-4 rounded-md shadow-lg', notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white']">
+        {{ notification.message }}
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -224,6 +237,7 @@ export default {
       url: "",
       hidden: false,
     });
+    const orderItems = ref([]);
 
     const openModal = () => {
       editMode.value = false;
@@ -258,8 +272,24 @@ export default {
         }
       } catch (err) {
         console.error("Error fetching products:", err);
-        showNotification("Error fetching products", 'error');
       }
+    };
+
+    const fetchOrderItems = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/api/prisma/get-order-items`);
+        if (response.status === 200) {
+          orderItems.value = response.data;
+        } else {
+          throw new Error("Failed to fetch order items");
+        }
+      } catch (err) {
+        console.error("Error fetching order items:", err);
+      }
+    };
+
+    const isProductInOrderItem = (productId) => {
+      return orderItems.value.some(orderItem => orderItem.productId === productId);
     };
 
     const addProduct = async () => {
@@ -313,6 +343,11 @@ export default {
     };
 
     const toggleProductVisibility = async (product) => {
+      if (isProductInOrderItem(product.id)) {
+        showNotification("Cannot change visibility of a product that is part of an order.", 'error');
+        return;
+      }
+
       try {
         const updatedProduct = { ...product, hidden: !product.hidden };
         const response = await axios.put(`${apiUrl}/api/prisma/update-product/${product.id}`, {
@@ -327,7 +362,7 @@ export default {
         }
       } catch (err) {
         if (err.response && err.response.status === 400) {
-          showNotification("Cannot delete product. It is part of a cart.", 'error');
+          showNotification("Cannot update product. It is part of an order.", 'error');
         } else {
           console.error("Error updating product visibility:", err);
           showNotification("Error updating product visibility: " + err.message, 'error');
@@ -336,6 +371,11 @@ export default {
     };
 
     const deleteProduct = async (productId) => {
+      if (isProductInOrderItem(productId)) {
+        showNotification("Cannot delete a product that is part of an order.", 'error');
+        return;
+      }
+
       try {
         const response = await axios.delete(`${apiUrl}/api/prisma/delete-product/${productId}`);
 
@@ -369,6 +409,7 @@ export default {
 
     onMounted(() => {
       fetchProducts();
+      fetchOrderItems();
     });
 
     return {
@@ -390,12 +431,19 @@ export default {
       displayedProducts,
       hiddenProducts,
       availableProducts,
+      isProductInOrderItem,
     };
   },
 };
 </script>
 
 <style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
 .main-content {
   padding-top: 100px;
 }
@@ -406,8 +454,9 @@ button:hover .group-hover\:text-white {
 
 .fixed-notification {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  top: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 50;
 }
 </style>
