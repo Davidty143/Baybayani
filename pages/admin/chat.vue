@@ -9,8 +9,13 @@
           <!-- Title -->
           <h1 class="text-3xl font-semibold mb-8 text-center">Chat</h1>
   
-          <!-- Tawk.to Chat Widget -->
-          <div id="tawk-widget"></div>
+          <!-- Embedded Tawk.to Widget using iframe -->
+          <iframe
+            id="tawk-iframe"
+            :src="iframeUrl"
+            class="w-full h-full border rounded-lg"
+            frameborder="0"
+          ></iframe>
         </div>
       </AdminLayout>
     </div>
@@ -19,7 +24,7 @@
   <script>
   import SideBarLayout from '~/layouts/SideBarLayout.vue';
   import AdminLayout from '~/layouts/AdminLayout.vue';
-  import { onMounted } from 'vue';
+  import { ref } from 'vue';
   
   export default {
     name: 'ChatPage',
@@ -28,18 +33,11 @@
       AdminLayout,
     },
     setup() {
-      onMounted(() => {
-        // Add the Tawk.to script dynamically when the component mounts
-        var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-        (function() {
-          var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
-          s1.async = true;
-          s1.src = 'https://embed.tawk.to/YOUR_TAWK_TO_PROPERTY_ID/default';
-          s1.charset = 'UTF-8';
-          s1.setAttribute('crossorigin', '*');
-          s0.parentNode.insertBefore(s1, s0);
-        })();
-      });
+      const iframeUrl = ref('https://embed.tawk.to/6741b6a92480f5b4f5a2d521/default');
+  
+      return {
+        iframeUrl,
+      };
     },
   };
   </script>
@@ -56,6 +54,11 @@
   
   .main-content {
     padding-top: 20px;
+  }
+  
+  #tawk-iframe {
+    width: 100%;
+    height: 600px;
   }
   </style>
   
