@@ -5,25 +5,30 @@
 
     <!-- Admin Layout -->
     <AdminLayout class="admin-layout">
-      <div class="main-content flex-1 overflow-y-auto p-6">
-        <!-- Title -->
-        <h1 class="text-3xl font-semibold mb-8 text-center">Chat Admin</h1>
+      <div class="main-content flex-1 flex flex-col items-center justify-center">
+        <!-- Centered Button -->
+        <button
+          :class="{
+            'bg-red-500 hover:bg-red-600 text-white': isDashboardOpen,
+            'bg-green-500 hover:bg-green-600 text-white': !isDashboardOpen,
+          }"
+          class="px-6 py-3 rounded-lg font-semibold text-xl"
+          @click="toggleDashboard"
+        >
+          {{ isDashboardOpen ? "Dashboard Opened" : "Open Dashboard" }}
+        </button>
 
-        <!-- Embedded Tawk.to Admin Panel -->
-        <iframe
-          src="https://dashboard.tawk.to/"
-          class="w-full h-full border rounded-lg"
-          frameborder="0"
-          title="Tawk.to Admin Panel"
-        ></iframe>
+        <!-- Instruction Text -->
+        <p class="mt-4 text-center text-sm text-gray-600">
+          Click "Open Dashboard" if you aren't directed to the chat dashboard directly.
+        </p>
       </div>
     </AdminLayout>
   </div>
 </template>
 
 <script>
-import { onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { ref, onMounted } from "vue";
 import SideBarLayout from "~/layouts/SideBarLayout.vue";
 import AdminLayout from "~/layouts/AdminLayout.vue";
 
@@ -34,23 +39,39 @@ export default {
     AdminLayout,
   },
   setup() {
-    const route = useRoute();
+    const isDashboardOpen = ref(false);
+    let dashboardWindow = null;
+
+    const toggleDashboard = () => {
+      if (isDashboardOpen.value && dashboardWindow && !dashboardWindow.closed) {
+        // Focus on the already open tab
+        dashboardWindow.focus();
+      } else {
+        // Open a new tab and store the window reference
+        dashboardWindow = window.open("https://dashboard.tawk.to/#/chat", "_blank");
+        if (dashboardWindow) {
+          isDashboardOpen.value = true;
+
+          // Track if the window gets closed
+          const checkClosed = setInterval(() => {
+            if (dashboardWindow.closed) {
+              isDashboardOpen.value = false;
+              clearInterval(checkClosed);
+            }
+          }, 500);
+        }
+      }
+    };
 
     onMounted(() => {
-      // Check if the URL does NOT contain "/admin"
-      if (!route.path.includes("/admin")) {
-        // Dynamically load Tawk.to script for customer chat
-        window.Tawk_API = window.Tawk_API || {};
-        window.Tawk_LoadStart = new Date();
-
-        const script = document.createElement("script");
-        script.async = true;
-        script.src = "https://embed.tawk.to/6741b6a92480f5b4f5a2d521/1idcb3230";
-        script.charset = "UTF-8";
-        script.setAttribute("crossorigin", "*");
-        document.body.appendChild(script);
-      }
+      // Automatically open the dashboard tab when the page loads
+      toggleDashboard();
     });
+
+    return {
+      toggleDashboard,
+      isDashboardOpen,
+    };
   },
 };
 </script>
@@ -66,11 +87,10 @@ export default {
 }
 
 .main-content {
-  padding-top: 20px;
-}
-
-iframe {
-  width: 100%;
-  height: calc(100vh - 120px); /* Adjust to fit inside the layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 </style>
