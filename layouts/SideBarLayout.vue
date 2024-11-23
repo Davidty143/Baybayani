@@ -25,7 +25,7 @@
         <!-- Chat -->
         <li>
           <a
-            href="/chat"
+            href="../admin/chat"
             class="flex items-center space-x-4 text-md font-medium hover:text-green-700 hover:bg-yellow-500 p-3 rounded-lg transition duration-300"
           >
             <!-- Icon -->
