@@ -13,7 +13,7 @@
           <!-- If not logged, goto login page -->
           <div v-if="!user" class="flex text-center">
             <NuxtLink
-              to="/auth"
+              to="/login"
               class="bg-[#FD374F] w-full text-white text-[21px] font-semibold p-1.5 rounded-full mt-4"
             >
               Sign in
@@ -91,9 +91,16 @@
 import AdminLayout from "~/layouts/AdminLayout.vue";
 import { useUserStore } from "~/stores/user";
 import { ref, computed } from "vue";
+const route = useRoute();
 
 const userStore = useUserStore();
 const user = useSupabaseUser();
+
+watchEffect(() => {
+  if (route.fullPath == "/shoppingcart" && userStore.isAdmin === true) {
+    navigateTo("/admin/dashboard");
+  }
+});
 
 let selectedArray = ref([]);
 
@@ -109,7 +116,10 @@ const totalItemsCount = computed(() => {
 });
 
 const totalSelectedWeight = computed(() => {
-  return selectedArray.value.reduce((sum, item) => sum + (item.val ? parseFloat(item.quantity) : 0), 0);
+  return selectedArray.value.reduce(
+    (sum, item) => sum + (item.val ? parseFloat(item.quantity) : 0),
+    0
+  );
 });
 
 const totalPriceComputed = computed(() => {

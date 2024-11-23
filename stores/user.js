@@ -13,12 +13,16 @@ export const useUserStore = defineStore("user", {
     checkout: [],
     user: null, // auth info
     profile: null, // profile info
+    isAdmin: false,
   }),
 
   actions: {
     // Fetch user profile and cart items
+
     async fetchUser() {
+      console.log("FETCHING!");
       if (this.user) {
+        console.log("ALREADY LOGGED IN");
         return; // Skip fetching if user is already set
       }
       console.log("FETCH USER RUNNING");
@@ -31,10 +35,14 @@ export const useUserStore = defineStore("user", {
         } else {
           this.user = data.user;
           console.log("Fetched user ID:", this.user.id);
+
           const profileData = await fetchUserProfile(this.user.id);
           this.profile = profileData;
-          // Fetch cart items after the user profile is fetched
-          await this.fetchCartItems(); // Call the new action to fetch the cart items
+
+          if (!this.isAdmin()) {
+            await this.fetchCartItems();
+          }
+          // Call the new action to fetch the cart items
         }
       } catch (err) {
         console.error("Unexpected error fetching user:", err);
@@ -44,14 +52,26 @@ export const useUserStore = defineStore("user", {
       }
     },
 
+    isAdmin() {
+      console.log("ROLE", this.profile.role);
+      if (this.profile.role === "Admin") {
+        this.isAdmin = true;
+        return true;
+      }
+      this.isAdmin = false;
+      return false;
+    },
+
     // Logout action
     logout() {
       const client = useSupabaseClient();
+      const route = useRoute();
       this.user = null;
       this.profile = null;
       this.cartItems = []; // Clear cart items on logout
       this.cart = [];
       this.isMenuOverlay = false;
+      this.isAdmin = false;
       client.auth.signOut();
       console.log("LOGOUT SUCESS");
       window.location.reload();
@@ -59,7 +79,9 @@ export const useUserStore = defineStore("user", {
 
     // New action to fetch the cart items
     async fetchCartItems() {
-      if (this.cartItems.length > 0 && this.refreshFlag === 0) return;
+      console.log("TRY PO");
+      if (this.isAdmin || (this.cartItems.length > 0 && this.refreshFlag === 0))
+        return;
 
       console.log("FETCH CART RUNNING");
       this.isLoading = true;

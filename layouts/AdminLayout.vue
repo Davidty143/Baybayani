@@ -78,13 +78,13 @@
         </NuxtLink>
 
         <div id="ProfileMenu" class="md:block hidden pt-3">
-          <ul class="flex items-center justify-end text-sm text-[#333333] font-bold">
-            <li class="relative flex items-center px-2.5 hover:text-[#FF4646] h-full gap-4">
-              <Icon
-                name="ph:user-light"
-                size="32"
-                class="text-[#0C6539]"
-              />
+          <ul
+            class="flex items-center justify-end text-sm text-[#333333] font-bold"
+          >
+            <li
+              class="relative flex items-center px-2.5 hover:text-[#FF4646] h-full gap-4"
+            >
+              <Icon name="ph:user-light" size="32" class="text-[#0C6539]" />
               <template v-if="user">
                 <span>
                   {{ userStore.profile ? userStore.profile.name : "User" }}
@@ -131,6 +131,7 @@ import { ref, computed } from "vue";
 const userStore = useUserStore();
 
 // Fetch cart items if not already loaded
+await userStore.fetchUser();
 await userStore.fetchCartItems();
 
 const client = useSupabaseClient();

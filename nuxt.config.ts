@@ -1,5 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import { defineNuxtConfig } from 'nuxt/config';
+import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
   pages: true,
@@ -16,7 +16,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       stripePk: process.env.STRIPE_PK_KEY,
-      apiUrl: process.env.API_URL || 'http://localhost:3000'
+      apiUrl: process.env.API_URL || "http://localhost:3000",
     },
   },
 

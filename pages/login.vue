@@ -4,7 +4,7 @@
     <div
       class="w-full flex items-center justify-center p-5 border-b border-b-gray-300 shadow-[0px_1px_6px_4px_rgba(0,_0,_0,_0.25)]"
     >
-      <NuxtLink to="/" class="min-w-[170px]">
+      <NuxtLink to="/" class="min-w-[170px]" @click.prevent="navigateAndReload">
         <img width="170" src="/baybayani-logo.png" alt="Logo" />
       </NuxtLink>
     </div>
@@ -102,6 +102,11 @@ watchEffect(async () => {
   }
 });
 
+const navigateAndReload = async () => {
+  await router.push("/"); // Navigate to the route
+  window.location.reload(); // Reload the page
+};
+
 // Reset error and success messages when user changes input
 const resetMessages = () => {
   errorMsg.value = null;
@@ -128,12 +133,16 @@ const login = async () => {
       errorMsg.value = error.message;
       successMsg.value = null;
     } else {
-      userStore.fetchUser();
-      successMsg.value =
-        "Successfully logged in as " + userData.toLowerCase() + "!";
+      await userStore.fetchUser();
+      successMsg.value = "Successfully logged in as " + userStore.role;
       errorMsg.value = null;
+      if (userStore.isAdmin) {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/");
+      }
+
       // Redirect user to the homepage or dashboard after successful login
-      router.push("/"); // You can change this to any route you want
     }
   } catch (error) {
     errorMsg.value = error.message;
