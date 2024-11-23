@@ -2,88 +2,51 @@
   <AdminLayout>
     <Loading v-if="userStore.isLoading" />
     <div id="ItemPage" class="mt-4 max-w-[1200px] mx-auto px-2">
-      <div class="md:flex gap-4 justify-between mx-auto w-full">
+      <div class="md:flex gap-10 justify-between mx-auto w-full">
         <div class="md:w-[40%]">
-          <img
-            v-if="currentImage"
-            class="rounded-lg object-fit"
-            :src="currentImage"
-          />
-          <div
-            v-if="images[0] !== ''"
-            class="flex items-center justify-center mt-2"
-          >
-            <div v-for="image in images" :key="image">
-              <img
-                @mouseover="currentImage = image"
-                @click="currentImage = image"
-                width="70"
-                class="rounded-md object-fit border-[3px] cursor-pointer"
-                :class="currentImage === image ? 'border-[#FF5353]' : ''"
-                :src="image"
-              />
-            </div>
+          <div class="flex flex-col">
+            <img
+              v-if="currentImage"
+              class="rounded-lg object-cover w-full h-[400px]"
+              :src="currentImage"
+              alt="Product Image"
+            />
           </div>
         </div>
 
-        <div class="md:w-[60%] bg-white p-3 rounded-lg">
+        <div class="md:w-[50%] bg-white p-6 rounded-lg shadow-md">
           <div v-if="product && product.data">
-            <p class="mt-5 mb-2 text-3xl font-semibold">
+            <h1 class="mt-2 mb-4 text-4xl font-semibold text-gray-800">
               {{ product.data.title }}
+            </h1>
+            <div class="text-3xl font-bold p-2 text-red-500">
+              ₱{{ product?.data?.price }} / kg
+            </div>
+
+            <p class="font-light text-lg text-gray-600 my-6">
+              Product Details:
             </p>
-            <p class="font-light text-[11px] py-4">
+            <p class="text-md text-gray-700 mb-4">
               {{ product.data.description }}
             </p>
-          </div>
 
-          <div class="border-b p-3" />
-
-          <div class="flex items-center justify-start gap-2 my-2">
-            <div class="text-3xl font-bold p-2 text-[#FF5353]">
-              ₱ {{ product?.data?.price }}
+            <div class="flex gap-4">
+              <button
+                @click="addToCart()"
+                :disabled="isInCart"
+                class="px-6 py-3 rounded-lg text-white text-lg font-semibold bg-green-600 hover:bg-green-700"
+              >
+                <div v-if="isInCart">Added to Cart</div>
+                <div v-else>Add to Cart</div>
+              </button>
+              <button
+                class="px-6 py-3 rounded-lg text-green-600 border border-green-600 text-lg font-semibold hover:bg-green-50"
+              >
+                Chat Seller
+              </button>
             </div>
-            <span
-              class="bg-[#0C6539] border text-[#fafafa] text-[12px] font-semibold px-1.5 rounded-sm"
-            >
-              Vegetables
-            </span>
-
-            <span
-              class="bg-[#F5F5F5] border text-[#C08562] text-[12px] font-semibold px-1.5 rounded-sm"
-            >
-              Top selling
-            </span>
           </div>
-
-          <div class="py-2" />
-
-          <button
-            @click="addToCart()"
-            :disabled="isInCart"
-            class="px-6 py-2 rounded-lg text-white text-lg font-semibold bg-gradient-to-r from-[#0C6539] to-[#0C6539]"
-          >
-            <div v-if="isInCart">Added to Cart</div>
-            <div v-else>Add to Cart</div>
-          </button>
         </div>
-      </div>
-
-      <!-- Display cart items (if any) -->
-      <div v-if="userStore.cartItems.length > 0">
-        <h3 class="mt-6 text-xl font-semibold">Your Cart:</h3>
-        <ul>
-          <li
-            v-for="item in userStore.cartItems"
-            :key="item.productId"
-            class="py-2"
-          >
-            <p>Product: {{ item.productTitle }}</p>
-            <p>Quantity: {{ item.quantity }}</p>
-          </li>
-        </ul>
-      </div>
-      <div v-else>
-        <p>Your cart is empty.</p>
       </div>
     </div>
   </AdminLayout>
@@ -101,8 +64,6 @@ let product = ref(null);
 let currentImage = ref(null);
 let addtocartResponse = ref(null);
 
-// pag fetch sa product page
-
 console.log("DISPLAYING THE CART");
 
 onBeforeMount(async () => {
@@ -114,7 +75,7 @@ onBeforeMount(async () => {
 watchEffect(() => {
   if (product.value && product.value.data) {
     currentImage.value = product.value.data.url;
-    images.value[0] = product.value.data.url;
+    images.value = [product.value.data.url];
     userStore.isLoading = false;
   }
 });
@@ -126,14 +87,7 @@ const isInCart = computed(() => {
   });
 });
 
-const images = ref([
-  "",
-  "https://picsum.photos/id/212/800/800",
-  "https://picsum.photos/id/233/800/800",
-  "https://picsum.photos/id/165/800/800",
-  "https://picsum.photos/id/99/800/800",
-  "https://picsum.photos/id/144/800/800",
-]);
+const images = ref([]);
 
 const addToCart = async () => {
   if (!product.value || !userStore.user) return;
@@ -178,12 +132,6 @@ const addToCart = async () => {
     userStore.refreshFlag = 1;
     console.log("Ready to call");
     await userStore.fetchCartItems();
-
-    // setTimeout(() => {
-    //   userStore.isLoading = false; // Set loading to false after 2 seconds
-    // }, 20);
-
-    // Check if the API response was successful
   } catch (error) {
     console.error("Error adding product to cart:", error);
   }
