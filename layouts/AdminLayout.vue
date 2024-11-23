@@ -18,7 +18,7 @@
             >
               <input
                 class="w-full placeholder-gray-400 text-sm pl-3 focus:outline-none"
-                placeholder="Admin"
+                placeholder="Search a product"
                 type="text"
                 v-model="searchItem"
               />
@@ -77,65 +77,33 @@
           </button>
         </NuxtLink>
 
-        <div id="TopMenu" class="md:block hidden pt-3">
-          <ul class="flex items-center justify-end text-sm text-[#333333]">
-            <li
-              @mouseenter="isAccountMenu = true"
-              @mouseleave="isAccountMenu = false"
-              class="relative flex items-center px-2.5 hover:text-[#FF4646] h-full cursor-pointer group"
-            >
+        <div id="ProfileMenu" class="md:block hidden pt-3">
+          <ul class="flex items-center justify-end text-sm text-[#333333] font-bold">
+            <li class="relative flex items-center px-2.5 hover:text-[#FF4646] h-full gap-4">
               <Icon
                 name="ph:user-light"
                 size="32"
-                class="text-[#0C6539] group-hover:text-[#FF4646]"
+                class="text-[#0C6539]"
               />
-              <span class="ml-2">Account</span>
-              <!-- Add margin-left to space the text from the icon -->
-
-              <Icon name="mdi:chevron-down" size="15" class="ml-5" />
-
-              <div
-                id="AccountMenu"
-                v-if="isAccountMenu"
-                class="absolute bg-white w-[200px] text-[#333333] z-40 top-[38px] -left-[0px] border-x border-b"
-              >
-                <div v-if="!user">
-                  <div class="text-semibold text-[15px] my-4 px-3">
-                    Welcome to Baybani!
-                  </div>
-                  <div class="flex items-center gap-1 px-3 mb-3">
-                    <NuxtLink
-                      to="/login"
-                      class="bg-[#0C6539] text-center w-full text-[16px] rounded-sm text-white font-semibold p-2"
-                    >
-                      Login
-                    </NuxtLink>
-                  </div>
-                </div>
-                <div class="relative group">
-                  <div class="border-b" />
-                  <ul class="bg-white">
-                    <li class="text-[15px] text-left font-bold py-2 px- w-full">
-                      <span class="ml-2">
-                        {{ userStore.profile ? userStore.profile.name : "" }}
-                      </span>
-                    </li>
-                    <li
-                      @click="navigateTo('/orders')"
-                      class="text-[13px] py-2 px-4 w-full hover:bg-gray-200"
-                    >
-                      My Orders
-                    </li>
-                    <li
-                      v-if="user"
-                      @click="signOut"
-                      class="text-[13px] py-2 px-4 w-full hover:bg-gray-200"
-                    >
-                      Sign out
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              <template v-if="user">
+                <span>
+                  {{ userStore.profile ? userStore.profile.name : "User" }}
+                </span>
+                <button
+                  @click="signOut"
+                  class="ml-4 bg-[#FF4646] text-white rounded px-3 py-1 font-bold"
+                >
+                  Logout
+                </button>
+              </template>
+              <template v-else>
+                <NuxtLink
+                  to="/login"
+                  class="ml-4 bg-[#0C6539] text-white rounded px-3 py-1 font-bold"
+                >
+                  Login
+                </NuxtLink>
+              </template>
             </li>
           </ul>
         </div>
@@ -149,8 +117,6 @@
       </div>
     </div>
   </div>
-
-  <!--   <Loading v-if="userStore.isLoading" /> -->
 
   <div class="lg:pt-[150px] md:pt-[130px] pt-[80px]" />
   <slot />
@@ -170,7 +136,6 @@ await userStore.fetchCartItems();
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
-let isAccountMenu = ref(false);
 let isCartHover = ref(false);
 let isSearching = ref(false);
 let searchItem = ref("");
@@ -207,11 +172,5 @@ watch(
 
 const signOut = async () => {
   userStore.logout();
-
-  // await client.auth.signOut(); // Sign the user out using Supabase
-  // userStore.user = null; // Clear user state in Pinia
-  // userStore.profile = null;
-
-  // window.location.reload(); // Reload the page to reflect the signed-out state
 };
 </script>
