@@ -4,25 +4,25 @@
       <div class="md:flex gap-4 justify-between mx-auto w-full">
         <!-- Pickup Information -->
         <div class="md:w-[65%]">
-          <div class="bg-white rounded-lg p-4">
-            <div class="text-xl font-semibold mb-2">Pickup Information</div>
-            <div class="pt-2 border-t">
+          <div class="bg-[#F8F9FA] rounded-lg p-4">
+            <div class="text-xl font-semibold mb-2 text-[#0C6539]">Pickup Information</div>
+            <div class="pt-2 border-t border-[#E0E0E0]">
               <ul class="text-sm">
                 <li class="flex items-center gap-2">
                   <div>Address:</div>
-                  <div class="font-bold">Baybay City Public Market</div>
+                  <div class="font-bold text-[#0C6539]">Baybay City Public Market</div>
                 </li>
                 <li class="flex items-center gap-2">
                   <div>Landmark:</div>
-                  <div class="font-bold">Beside Bagsakan</div>
+                  <div class="font-bold text-[#0C6539]">Beside Bagsakan</div>
                 </li>
                 <li class="flex items-center gap-2">
                   <div>Map location:</div>
-                  <div class="font-bold">Google Maps Link</div>
+                  <div class="font-bold text-[#0C6539]">Google Maps Link</div>
                 </li>
                 <li class="flex items-center gap-2">
                   <div>Contact:</div>
-                  <div class="font-bold">09123456789</div>
+                  <div class="font-bold text-[#0C6539]">09123456789</div>
                 </li>
               </ul>
             </div>
@@ -41,22 +41,22 @@
         <!-- Place Order -->
         <div class="md:hidden block my-4" />
         <div class="md:w-[35%]">
-          <div id="PlaceOrder" class="bg-white rounded-lg p-4">
-            <div class="text-2xl font-extrabold mb-2">Summary</div>
+          <div id="PlaceOrder" class="bg-[#F8F9FA] rounded-lg p-4">
+            <div class="text-2xl font-extrabold mb-2 text-[#0C6539]">Summary</div>
 
-            <div class="border-t my-5" />
+            <div class="border-t my-5 border-[#E0E0E0]" />
 
             <div class="flex items-center justify-between my-4">
               <div class="font-semibold">Total</div>
-              <div class="text-2xl font-semi bold text-[#FD374F]">
+              <div class="text-2xl font-semibold text-[#FF3200]">
                 ₱
-                <span class="font-extrabold text-[#FD374F]">{{ total }}</span>
+                <span class="font-extrabold text-[#FF3200]">{{ total }}</span>
               </div>
             </div>
 
             <button
               @click="placeOrder"
-              class="mt-4 bg-gradient-to-r from-[#FF3200] to-[#FF3200] w-full text-white text-[21px] font-semibold p-1.5 rounded-full"
+              class="mt-4 bg-gradient-to-r from-[#0C6539] to-[#0C6539] w-full text-white text-[21px] font-semibold p-1.5 rounded-full"
             >
               Confirm Order
             </button>

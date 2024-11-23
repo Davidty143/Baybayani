@@ -65,7 +65,7 @@
             <span
               class="absolute flex items-center justify-center -right-[3px] top-0 bg-[#FF4646] h-[17px] min-w-[17px] text-xs text-white px-0.5 rounded-full"
             >
-              {{ userStore.cartItems.length }}
+              {{ filteredCartCount }}
             </span>
             <div class="min-w-[40px]">
               <Icon
@@ -160,11 +160,12 @@
 
 <script setup>
 import { useUserStore } from "~/stores/user";
+import { ref, computed } from "vue";
+
 const userStore = useUserStore();
 
-//if (!userStore.cart) {
+// Fetch cart items if not already loaded
 await userStore.fetchCartItems();
-//}
 
 const client = useSupabaseClient();
 const user = useSupabaseUser();
@@ -174,6 +175,13 @@ let isCartHover = ref(false);
 let isSearching = ref(false);
 let searchItem = ref("");
 let items = ref(null);
+
+// Filter cart items count that are not hidden and not deleted
+const filteredCartCount = computed(() => {
+  return userStore.cartItems.filter(
+    (item) => !item.product.hidden && !item.product.isDeleted
+  ).length;
+});
 
 const searchByName = useDebounce(async () => {
   isSearching.value = true;

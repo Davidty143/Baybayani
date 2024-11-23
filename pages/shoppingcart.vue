@@ -2,7 +2,7 @@
   <AdminLayout>
     <div id="ShoppingCartPage" class="mt-4 max-w-[1200px] mx-auto px-2">
       <div
-        v-if="!userStore.cartItems.length"
+        v-if="!filteredCartItems.length"
         class="h-[500px] flex items-center justify-center"
       >
         <div class="pt-20">
@@ -26,7 +26,7 @@
         <div class="md:w-[65%]">
           <div class="bg-white rounded-lg p-4">
             <div class="text-2xl font-bold mb-2">
-              Shopping Cart ({{ userStore.cartItems.length }})
+              Shopping Cart ({{ filteredCartItems.length }})
             </div>
           </div>
 
@@ -41,11 +41,11 @@
 
           <div id="Items" class="bg-white rounded-lg p-4 mt-4">
             <div
-              v-for="(cartItem, index) in userStore.cartItems"
+              v-for="(cartItem, index) in filteredCartItems"
               :key="cartItem.id"
             >
               <CartItem
-                :product="userStore.cartItems[index].product"
+                :product="filteredCartItems[index].product"
                 :selectedArray="selectedArray"
                 @selectedRadio="selectedRadioFunc"
               />
@@ -78,8 +78,8 @@
             <div class="text-lg font-semibold mb-2">Order Details</div>
 
             <div class="border-b my-5" />
-            <p class="my-2">Total Items: {{ selectedItemsCount }}</p>
-            <p class="my-2">Total Unit: {{ totalWeight }} kg</p>
+            <p class="my-2">Total Items: {{ totalItemsCount }}</p>
+            <p class="my-2">Total Unit: {{ totalSelectedWeight }} kg</p>
           </div>
         </div>
       </div>
@@ -90,44 +90,34 @@
 <script setup>
 import AdminLayout from "~/layouts/AdminLayout.vue";
 import { useUserStore } from "~/stores/user";
+import { ref, computed } from "vue";
+
 const userStore = useUserStore();
 const user = useSupabaseUser();
 
 let selectedArray = ref([]);
 
-const selectedItemsCount = computed(() => selectedArray.value.length);
-const totalWeight = computed(() => {
-  return selectedArray.value.reduce((sum, item) => sum + item.quantity, 0);
+// Filter out products that are hidden or deleted
+const filteredCartItems = computed(() => {
+  return userStore.cartItems.filter(
+    (item) => !item.product.hidden && !item.product.isDeleted
+  );
+});
+
+const totalItemsCount = computed(() => {
+  return selectedArray.value.reduce((sum, item) => sum + (item.val ? 1 : 0), 0);
+});
+
+const totalSelectedWeight = computed(() => {
+  return selectedArray.value.reduce((sum, item) => sum + (item.val ? parseFloat(item.quantity) : 0), 0);
 });
 
 const totalPriceComputed = computed(() => {
-  console.log("PRICE COMPUTE FLAG");
-
-  // Log the selectedArray and individual item details
-  console.log("Selected Array:", selectedArray.value);
-
-  const total = selectedArray.value.reduce((sum, item) => {
-    console.log(
-      `Item: ${JSON.stringify(item)}, Price: ${item.price}, Quantity: ${
-        item.quantity
-      }`
-    );
-    return sum + item.price * item.quantity;
-  }, 0);
-
-  console.log("Total Price:", total);
-
-  return total;
+  return selectedArray.value.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 });
-
-// const totalPriceComputed = computed(() => {
-//   console.log("PRICE COMPUTE FLAG");
-
-//   return selectedArray.value.reduce(
-//     (sum, item) => sum + item.price * item.quantity,
-//     0
-//   );
-// });
 
 const selectedRadioFunc = (e) => {
   const existingIndex = selectedArray.value.findIndex(
@@ -148,57 +138,18 @@ const selectedRadioFunc = (e) => {
 };
 
 const goToCheckout = () => {
-  // Step 1: Get the list of selected item IDs
   const ids = selectedArray.value.map((item) => item.id);
-  console.log("Selected Item IDs:", ids);
 
-  if (ids.length === 0) {
-    console.log("No items selected.");
-    return;
-  }
-
-  if (!userStore.cartItems || userStore.cartItems.length === 0) {
-    console.log("No items in cart.");
+  if (ids.length === 0 || !filteredCartItems.value.length) {
     return;
   }
 
   userStore.checkout = [];
-  console.log("Checkout array initialized:", userStore.checkout);
+  const filteredItems = filteredCartItems.value.filter((item) =>
+    ids.includes(item.productId)
+  );
 
-  let res = userStore.cartItems.filter((item) => ids.includes(item.productId));
-  console.log("Filtered Cart Items:", res);
-
-  if (res.length === 0) {
-    console.log("No matching items found in the cart.");
-    return;
-  }
-
-  res.forEach((item) => {
-    console.log("Adding item to checkout:", item.product);
-    userStore.checkout.push(toRaw(item)); // Add the entire item to checkout
-  });
-
-  console.log("Checkout array after addition:", userStore.checkout);
-
-  console.log("Navigating to checkout...");
+  userStore.checkout.push(...filteredItems);
   return navigateTo("/checkout");
 };
-
-// const goToCheckout = () => {
-//   let ids = [];
-//   userStore.checkout = [];
-//   selectedArray.value.forEach((item) => ids.push(item.id));
-//   let res = userStore.cart.filter((item) => {
-//     //   return ids.indexOf(item.id) != -1;
-//   });
-//   res.forEach((item) => userStore.checkout.push(toRaw(item)));
-
-//   return navigateTo("/checkout");
-// };
-
-watchEffect(async () => {
-  if (!user.value) {
-    await navigateTo("/login");
-  }
-});
 </script>
