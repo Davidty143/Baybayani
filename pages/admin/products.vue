@@ -102,12 +102,13 @@
                     <Icon name="ph:pencil-simple-bold" size="20" />
                   </button>
                   <button 
-                    @click="deleteProduct(product.id)" 
+                    @click="markProductAsDeleted(product.id)" 
                     :disabled="isProductInOrderItem(product.id)" 
                     class="text-gray-600 hover:text-red-800 disabled:opacity-50"
                   >
                     <Icon name="ph:trash-bold" size="20" />
                   </button>
+                  <span v-if="isProductInOrderItem(product.id)" class="text-red-600 text-sm">Cannot delete, product exists in cart items.</span>
                 </td>
               </tr>
             </tbody>
@@ -266,7 +267,7 @@ export default {
       try {
         const response = await axios.get(`${apiUrl}/api/prisma/get-all-products`);
         if (response.status === 200) {
-          products.value = response.data;
+          products.value = response.data.filter(product => !product.isDeleted);
         } else {
           throw new Error("Failed to fetch products");
         }
@@ -280,6 +281,7 @@ export default {
         const response = await axios.get(`${apiUrl}/api/prisma/get-order-items`);
         if (response.status === 200) {
           orderItems.value = response.data;
+          console.log("Order Items:", orderItems.value); // Print the order items in the console
         } else {
           throw new Error("Failed to fetch order items");
         }
@@ -370,17 +372,19 @@ export default {
       }
     };
 
-    const deleteProduct = async (productId) => {
+    const markProductAsDeleted = async (productId) => {
       if (isProductInOrderItem(productId)) {
         showNotification("Cannot delete a product that is part of an order.", 'error');
         return;
       }
 
       try {
-        const response = await axios.delete(`${apiUrl}/api/prisma/delete-product/${productId}`);
+        const response = await axios.put(`${apiUrl}/api/prisma/update-product/${productId}`, {
+          isDeleted: true,
+        });
 
         if (response.status === 200) {
-          showNotification("Product successfully deleted!", 'success');
+          showNotification("Product successfully marked as deleted!", 'success');
           products.value = products.value.filter((p) => p.id !== productId);
         } else {
           throw new Error("Failed to delete product");
@@ -424,7 +428,7 @@ export default {
       addProduct,
       updateProduct,
       toggleProductVisibility,
-      deleteProduct,
+      markProductAsDeleted,
       searchQuery,
       filteredProducts,
       totalProducts,

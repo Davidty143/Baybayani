@@ -74,6 +74,7 @@ model Products {
   farmer     Farmer[]   @relation("FarmerProducts")
   CartItem    CartItem[]
   hidden      Boolean  @default(false)
+  isDeleted   Boolean     @default(false)
 }
 
 model Farmer {

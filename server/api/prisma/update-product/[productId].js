@@ -20,6 +20,7 @@ export default defineEventHandler(async (event) => {
           price: requestBody.price !== undefined ? parseFloat(requestBody.price) : undefined,
           url: requestBody.url || undefined,
           hidden: requestBody.hidden !== undefined ? requestBody.hidden : undefined,
+          isDeleted: requestBody.isDeleted !== undefined ? requestBody.isDeleted : undefined,
         },
       });
 
@@ -32,7 +33,11 @@ export default defineEventHandler(async (event) => {
       };
     } else {
       // Fetching all products when no productId is specified
-      const products = await prisma.products.findMany();
+      const products = await prisma.products.findMany({
+        where: {
+          isDeleted: false,
+        },
+      });
       return {
         statusCode: 200,
         body: products,
